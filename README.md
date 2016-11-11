@@ -21,4 +21,5 @@ Every round, the game asks for a line number and a row number. enter both and th
 ## To-Do
 - [x] Allow different field sizes
 - [ ] Allow non-square fields
+- [ ] Better way to encode puzzles (binary number of length n\*n converted to hex)
 - [ ] GUI
