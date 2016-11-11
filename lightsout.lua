@@ -1,3 +1,5 @@
+-- Version 1.1
+
 -- get the tables
 require("tables")
 
