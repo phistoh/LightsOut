@@ -1,3 +1,6 @@
+-- get the tables
+require("tables")
+
 -- switches the state a given entry and its neighbors
 local function switch(x, y)
 	-- invert the given entry
@@ -22,12 +25,14 @@ end
 
 -- prints the field to the console
 local function writeField()
-	-- writes the field to the console
+	
+	-- clears the screen
+	os.execute("cls")
 	
 	-- first line
 	io.write("\n    ")
 	for i = 1, numRows do
-		io.write(i.." ")
+		io.write(string.format("%x ",i))
 	end
 	io.write("\n")
 	
@@ -40,7 +45,7 @@ local function writeField()
 	
 	-- lines 3 to 2*(n + 1)
 	for i = 1, numLines do
-		io.write(" "..i.." |")
+		io.write(string.format(" %x |",i))
 		for j=1,numRows do
 			if field[i][j] == 1 then
 				io.write("#")
@@ -67,8 +72,6 @@ local function getInput()
 	local autoSolve = false
 	-- while the input is not valid...
 	while x < 1 or y < 1 or x > numLines or y > numRows do
-		-- clear the console
-		os.execute("cls")
 		-- print the field
 		writeField()
 		-- get user input for line number
@@ -118,8 +121,14 @@ local function checkWin()
 end
 
 -- performs random switches on the initial empty field
-local function initField()
-	math.randomseed(os.time())
+local function initField(seed)
+	for i = 1, numLines do
+		field[i] = {}
+		for j = 1, numRows do
+			field[i][j] = 0
+		end
+	end
+	math.randomseed(seed)
 	for i = 1, numLines do
 		for j = 1, numRows do
 			if math.random() > 0.5 then
@@ -139,11 +148,10 @@ local function chaseLights()
 			if field[i-1][j] == 1 then
 				switch(i, j)
 				step = step + 1
-				io.write(string.format("Switched (%i, %i)!\n", i, j))
 				writeField()
 				-- sleep
 				local t0 = os.clock()
-				while os.clock() - t0 <= 0.3 do
+				while os.clock() - t0 <= 0.15 do
 					-- nop
 				end
 			end
@@ -158,12 +166,6 @@ local function solve()
 	-- switch (x, y) if (x - 1, y) is lit
 	chaseLights()
 	
-	-- if the field is not 5x5 -> abort
-	if numLines ~= 5 or numRows ~= 5 then
-		io.write(string.format("No table for a field of size %i x %i\n", numRows, numLines))
-		return
-	end
-	
 	-- switch some lights on the first rows (dependant on the last row)
 	-- build a string out of the last row
 	local lastRowString = ""
@@ -171,29 +173,34 @@ local function solve()
 		lastRowString = lastRowString..field[numLines][i]
 	end
 	
-	-- only these patterns are solvable
-	if lastRowString == "00111" then
-		switch(1,4)
-	elseif lastRowString == "01010" then
-		switch(1,1)
-		switch(1,4)
-	elseif lastRowString == "01101" then
-		switch(1,1)
-	elseif lastRowString == "10001" then
-		switch(1,1)
-		switch(1,2)
-	elseif lastRowString == "10110" then
-		switch(1,5)
-	elseif lastRowString == "11011" then
-		switch(1,3)
-	elseif lastRowString == "11100" then
-		switch(1,2)
-	elseif lastRowString == "00000" then
-		-- victory
+	-- test if the string is "0...0"
+	if lastRowString == string.rep("0",numRows) then
 		return
-	else
-		io.write("Puzzle hat keine L�sung")
+	end
+	
+	-- get the current table
+	solutions = _G["table_"..numLines]
+	if solutions == nil then
+		io.write(string.format("Keine Tabelle für %i x %i vorhanden!",numLines,numLines))
 		return
+	end
+	
+	-- test if the string is not in the table
+	if solutions[lastRowString] == nil then
+		solvable = false
+		return
+	end
+	
+	-- to get the current position in the string
+	local pos = 1
+	
+	-- iterates over all chars in the string
+	for c in solutions[lastRowString]:gmatch(".") do
+		-- switch the light corresponding to the string
+		if tonumber(c) == 1 then
+			switch(1,pos)
+		end
+	pos = pos+1
 	end
 	
 	-- chase the lights again
@@ -205,31 +212,25 @@ end
 ----------------------
 -- main stuff
 ----------------------
--- traditional square field
-numLines, numRows = 5, 5
+-- default values
+numLines = 5
+seed = os.time()
 
--- io.write("Wie gross soll das Feld sein? (Zwischen 3 und 9 Feldern) ")
--- numRows = io.read("*number")
+-- is the first argument was given
+if tonumber(arg[1]) ~= nil then
+	numLines = tonumber(arg[1])
+end
 
--- -- sets the number of rows to a valid value
--- if numRows < 3 then numRows = 3 end
--- if numRows > 9 then numRows = 9 end
+-- is the second argument was given
+if tonumber(arg[2]) ~= nil then
+	seed = tonumber(arg[2])
+end
 
--- io.write("Wie hoch soll das Feld sein? (Zwischen 3 und 9 Feldern) ")
--- numLines = io.read("*number")
-
--- -- sets the number of lines to a valid value
--- if numLines < 3 then numLines = 3 end
--- if numLines > 9 then numLines = 9 end
+-- make a square field
+numRows = numLines
 
 -- initialized the field
 field = {}
-for i = 1, numLines do
-	field[i] = {}
-	for j = 1, numRows do
-		field[i][j] = 0
-	end
-end
 
 -- stepcounter
 step = 0
@@ -237,11 +238,17 @@ step = 0
 -- stores if the game was solved by the user
 userSolved = true
 
-initField()
+-- stores if the game is solvable
+solvable = true
+
+-- get the current time as a seed for initField()
+initField(seed)
+
 
 -- main loop
 while checkWin() == 0 do
 	local x, y, autoSolve = getInput()
+	
 	if autoSolve == true then
 		solve()
 		userSolved = false
@@ -253,12 +260,17 @@ end
 
 --victory
 if userSolved == true then 
-	os.execute("cls")
 	writeField()
 end
 
-if step == 1 then
-	io.write("Gewonnen in einem Schritt!\n")
+if solvable then
+	if step == 1 then
+		io.write("Gewonnen in einem Schritt!\n")
+	else
+		io.write(string.format("Gewonnen in %i Schritten!\n", step))
+	end
 else
-	io.write(string.format("Gewonnen in %i Schritten!\n", step))
+	initField(seed)
+	writeField()
+	io.write(string.format("Puzzle %i ist nicht mit \"chase-the-lights\" lösbar.", seed))
 end
