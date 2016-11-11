@@ -84,7 +84,7 @@ local function increment(binString)
 end
 
 local function patternTest(size)
-	-- defualt size
+	-- default size
 	numLines = size
 
 	-- traditional square field
@@ -162,6 +162,7 @@ local start = os.clock()
 -- test the patterns
 for i = 1, maxSize do
 	patternTest(i)
+	io.write(string.format("Table %i complete.\n", i))
 end
 
 -- get the elapsed time
