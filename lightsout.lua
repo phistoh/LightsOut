@@ -221,6 +221,14 @@ seed = os.time()
 -- is the first argument was given
 if tonumber(arg[1]) ~= nil then
 	numLines = tonumber(arg[1])
+	
+	-- put the argument inside [1, 15]
+	if numLines < 1 then
+		numLines = 1
+	elseif numLines > 15 then
+		numLines = 15
+	end
+	
 end
 
 -- is the second argument was given
