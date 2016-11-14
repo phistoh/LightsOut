@@ -15,6 +15,7 @@ Every round, the game asks for a line number and a row number. enter both and th
 - `tables.lua`: Contains these tables
 
 ## Changes
+- **1.1.1**: Fixed the solving method and included tables up to 15x15
 - **1.1**: Square grids other than 5x5 are now possible to play and solve
 - **1.0**: Initial release
 
