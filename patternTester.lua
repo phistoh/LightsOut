@@ -36,6 +36,16 @@ local function chaseLights()
 end
 
 local function testPattern(firstLine)
+	-- initialze an empty field
+	-- initialized the field
+	field = {}
+	for i = 1, numLines do
+		field[i] = {}
+		for j = 1, numRows do
+			field[i][j] = 0
+		end
+	end
+
 	-- to get the current position in the string
 	local pos = 1
 	
@@ -90,15 +100,6 @@ local function patternTest(size)
 	-- traditional square field
 	numRows = numLines
 
-	-- initialized the field
-	field = {}
-	for i = 1, numLines do
-		field[i] = {}
-		for j = 1, numRows do
-			field[i][j] = 0
-		end
-	end
-
 
 	-- Test patterns
 	-- give switches in first line (as string)
@@ -116,7 +117,12 @@ local function patternTest(size)
 		firstLine = increment(firstLine)
 		-- test the pattern
 		local lastLine = testPattern(firstLine)
-		-- put it in the table
+		-- if there is already a first line pattern with the same outcome, check if the new one is shorter (has less "1") and if true -> overwrite the old one
+		if patternPairs[lastLine] ~= nil and #(string.gsub(firstLine, "0", "")) < #(string.gsub(patternPairs[lastLine], "0", "")) then
+			patternPairs[lastLine] = firstLine
+			break
+		end
+		-- put it in the table ()
 		patternPairs[lastLine] = firstLine
 	end
 
